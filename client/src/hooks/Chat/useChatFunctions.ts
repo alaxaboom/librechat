@@ -31,6 +31,7 @@ import useGetSender from '~/hooks/Conversations/useGetSender';
 import { logger, createDualMessageContent } from '~/utils';
 import store, { useGetEphemeralAgent } from '~/store';
 import { startupConfigKey } from '~/data-provider';
+import { interactionLogState } from '~/store/interactionLog';
 import useUserKey from '~/hooks/Input/useUserKey';
 import { useAuthContext } from '~/hooks';
 
@@ -39,6 +40,18 @@ const logChatRequest = (request: Record<string, unknown>) => {
   logger.dir(request);
   logger.log('=====================================');
 };
+
+// Массив разных mock-ответов агента
+const MOCK_RESPONSES = [
+  'ответ от агента!',
+  'Интересный вопрос, давайте разберемся вместе.',
+  'Я получил ваше сообщение и обрабатываю запрос.',
+  'Спасибо за обращение! Вот что я могу сказать по этому поводу.',
+  'Понял вас! Вот мой ответ на ваш вопрос.',
+];
+
+// Функция для получения случайного mock-ответа
+const getRandomMockResponse = () => MOCK_RESPONSES[Math.floor(Math.random() * MOCK_RESPONSES.length)];
 
 export default function useChatFunctions({
   index = 0,
@@ -75,6 +88,7 @@ export default function useChatFunctions({
   const setIsSubmitting = useSetRecoilState(store.isSubmittingFamily(index));
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(index));
   const resetLatestMultiMessage = useResetRecoilState(store.latestMessageFamily(index + 1));
+  const setInteractionLog = useSetRecoilState(interactionLogState);
 
   /**
    * Atomically read + reset the per-conversation queue of manually-invoked
@@ -371,6 +385,19 @@ export default function useChatFunctions({
     }
 
     logger.log('message_state', initialResponse);
+
+    // Записываем взаимодействие в лог
+    const randomResponse = getRandomMockResponse();
+    setInteractionLog((prev) => [
+      ...prev,
+      {
+        id: v4(),
+        timestamp: Date.now(),
+        userMessage: text,
+        aiResponse: randomResponse,
+      },
+    ]);
+
     const submission: TSubmission = {
       conversation: {
         ...conversation,
@@ -392,6 +419,8 @@ export default function useChatFunctions({
       editedContent,
       addedConvo,
       manualSkills: manualSkills.length > 0 ? manualSkills : undefined,
+      // Добавляем флаг для mock-режима
+      isMock: true,
     };
 
     if (isRegenerate) {

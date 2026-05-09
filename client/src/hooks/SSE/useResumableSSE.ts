@@ -13,6 +13,7 @@ import {
   createPayload,
   ViolationTypes,
   removeNullishValues,
+  ContentTypes,
 } from 'librechat-data-provider';
 import type { TMessage, TPayload, TSubmission, EventSubmission } from 'librechat-data-provider';
 import type { EventHandlerParams } from './useEventHandlers';
@@ -27,6 +28,18 @@ import { useAuthContext } from '~/hooks/AuthContext';
 import useEventHandlers from './useEventHandlers';
 import { clearAllDrafts } from '~/utils';
 import store from '~/store';
+
+// Массив разных mock-ответов агента
+const MOCK_RESPONSES = [
+  'ответ от агента!',
+  'Интересный вопрос, давайте разберемся вместе.',
+  'Я получил ваше сообщение и обрабатываю запрос.',
+  'Спасибо за обращение! Вот что я могу сказать по этому поводу.',
+  'Понял вас! Вот мой ответ на ваш вопрос.',
+];
+
+// Функция для получения случайного mock-ответа
+const getRandomMockResponse = () => MOCK_RESPONSES[Math.floor(Math.random() * MOCK_RESPONSES.length)];
 
 type ChatHelpers = Pick<
   EventHandlerParams,
@@ -640,6 +653,57 @@ export default function useResumableSSE(
       reconnectAttemptRef.current = 0;
       submissionRef.current = null;
       return;
+    }
+
+    // MOCK MODE: Генерируем ответ локально без HTTP запросов
+    if ((submission as TSubmission & { isMock?: boolean }).isMock) {
+      console.log('[ResumableSSE] MOCK MODE: Generating local response');
+
+      const initMockStream = async () => {
+        setIsSubmitting(true);
+        setShowStopButton(true);
+
+        // Имитируем небольшую задержку как у реального агента
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        const messages = getMessages() ?? [];
+        const userMessageId = submission.userMessage?.messageId;
+        const responseId = `${userMessageId}_`;
+
+        // Находим индекс сообщения с ответом
+        const responseIdx = messages.findIndex(
+          (m) => m.messageId === responseId || m.parentMessageId === userMessageId,
+        );
+
+        if (responseIdx >= 0) {
+          // Обновляем сообщение с mock-ответом
+          const randomResponse = getRandomMockResponse();
+          const updated = [...messages];
+          updated[responseIdx] = {
+            ...updated[responseIdx],
+            text: randomResponse,
+            content: [
+              {
+                type: ContentTypes.TEXT,
+                text: { value: randomResponse },
+              },
+            ],
+            unfinished: false,
+          };
+          setMessages(updated);
+        }
+
+        // Завершаем генерацию
+        setIsSubmitting(false);
+        setShowStopButton(false);
+      };
+
+      initMockStream();
+
+      return () => {
+        setIsSubmitting(false);
+        setShowStopButton(false);
+      };
     }
 
     const resumeStreamId = (submission as TSubmission & { resumeStreamId?: string }).resumeStreamId;
