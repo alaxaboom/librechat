@@ -26,6 +26,7 @@ const router = express.Router();
 router.use(requireJwtAuth);
 
 router.get('/', async (req, res) => {
+  console.log('Получение списка бесед пользователем', req.user.id);
   const limit = parseInt(req.query.limit, 10) || 25;
   const cursor = req.query.cursor;
   const isArchived = isEnabled(req.query.isArchived);
@@ -57,6 +58,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:conversationId', async (req, res) => {
   const { conversationId } = req.params;
+  console.log('Получение беседы', conversationId, 'пользователем', req.user.id);
   const convo = await db.getConvo(req.user.id, conversationId);
 
   if (convo) {
@@ -68,6 +70,7 @@ router.get('/:conversationId', async (req, res) => {
 
 router.get('/gen_title/:conversationId', async (req, res) => {
   const { conversationId } = req.params;
+  console.log('Получение заголовка для беседы', conversationId, 'пользователем', req.user.id);
   const titleCache = getLogStores(CacheKeys.GEN_TITLE);
   const key = `${req.user.id}-${conversationId}`;
   let title = await titleCache.get(key);
@@ -97,6 +100,7 @@ router.get('/gen_title/:conversationId', async (req, res) => {
 router.delete('/', async (req, res) => {
   let filter = {};
   const { conversationId, source, thread_id, endpoint } = req.body?.arg ?? {};
+  console.log('Удаление беседы', conversationId, 'пользователем', req.user.id);
 
   // Prevent deletion of all conversations
   if (!conversationId && !source && !thread_id && !endpoint) {
@@ -140,6 +144,7 @@ router.delete('/', async (req, res) => {
 
 router.delete('/all', async (req, res) => {
   try {
+    console.log('Удаление всех бесед пользователем', req.user.id);
     const dbResponse = await db.deleteConvos(req.user.id, {});
     await db.deleteToolCalls(req.user.id);
     await db.deleteAllSharedLinks(req.user.id);
@@ -159,6 +164,8 @@ router.delete('/all', async (req, res) => {
  */
 router.post('/archive', validateConvoAccess, async (req, res) => {
   const { conversationId, isArchived } = req.body?.arg ?? {};
+  const isTemp = req?.body?.isTemporary;
+  console.log('Архивация беседы', conversationId, 'статус:', isArchived, isTemp ? '(временная)' : '', 'пользователем', req.user.id);
 
   if (!conversationId) {
     return res.status(400).json({ error: 'conversationId is required' });
@@ -197,6 +204,8 @@ const MAX_CONVO_TITLE_LENGTH = 1024;
  */
 router.post('/update', validateConvoAccess, async (req, res) => {
   const { conversationId, title } = req.body?.arg ?? {};
+  const isTemp = req?.body?.isTemporary;
+  console.log('Обновление заголовка беседы', conversationId, 'на:', title, isTemp ? '(временная)' : '', 'пользователем', req.user.id);
 
   if (!conversationId) {
     return res.status(400).json({ error: 'conversationId is required' });
@@ -266,6 +275,7 @@ router.post(
   handleUpload,
   async (req, res) => {
     try {
+      console.log('Импорт бесед из файла пользователем', req.user.id);
       /* TODO: optimize to return imported conversations and add manually */
       await importConversations({
         filepath: req.file.path,
@@ -292,6 +302,7 @@ router.post('/fork', forkIpLimiter, forkUserLimiter, async (req, res) => {
   try {
     /** @type {TForkConvoRequest} */
     const { conversationId, messageId, option, splitAtTarget, latestMessageId } = req.body;
+    console.log('Форк беседы', conversationId, 'от сообщения', messageId, 'пользователем', req.user.id);
     const result = await forkConversation({
       requestUserId: req.user.id,
       originalConvoId: conversationId,
@@ -311,6 +322,7 @@ router.post('/fork', forkIpLimiter, forkUserLimiter, async (req, res) => {
 
 router.post('/duplicate', forkIpLimiter, forkUserLimiter, async (req, res) => {
   const { conversationId, title } = req.body;
+  console.log('Дублирование беседы', conversationId, 'пользователем', req.user.id);
 
   try {
     const result = await duplicateConversation({

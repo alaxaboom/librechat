@@ -25,11 +25,26 @@ const handlers = createAdminGrantsHandlers({
 
 router.use(requireJwtAuth, requireAdminAccess);
 
-router.get('/', handlers.listGrants);
-router.get('/effective', handlers.getEffectiveCapabilities);
-router.get('/:principalType/:principalId', handlers.getPrincipalGrants);
-router.post('/', handlers.assignGrant);
+router.get('/', (req, res, next) => {
+  console.log('Получение списка грантов администратором', req.user.id);
+  handlers.listGrants(req, res, next);
+});
+router.get('/effective', (req, res, next) => {
+  console.log('Получение эффективных возможностей администратором', req.user.id);
+  handlers.getEffectiveCapabilities(req, res, next);
+});
+router.get('/:principalType/:principalId', (req, res, next) => {
+  console.log('Получение грантов для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.getPrincipalGrants(req, res, next);
+});
+router.post('/', (req, res, next) => {
+  console.log('Назначение гранта администратором', req.user.id);
+  handlers.assignGrant(req, res, next);
+});
 /** Callers should encodeURIComponent the capability for client compatibility (e.g. manage%3Aconfigs%3Aendpoints). */
-router.delete('/:principalType/:principalId/:capability', handlers.revokeGrant);
+router.delete('/:principalType/:principalId/:capability', (req, res, next) => {
+  console.log('Отзыв гранта', req.params.capability, 'для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.revokeGrant(req, res, next);
+});
 
 module.exports = router;

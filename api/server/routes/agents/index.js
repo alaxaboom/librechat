@@ -59,6 +59,7 @@ router.use('/', v1);
 router.get('/chat/stream/:streamId', async (req, res) => {
   const { streamId } = req.params;
   const isResume = req.query.resume === 'true';
+  console.log('Подписка на поток агента', streamId, 'пользователем', req.user.id);
 
   const job = await GenerationJobManager.getJob(streamId);
   if (!job) {
@@ -160,6 +161,7 @@ router.get('/chat/stream/:streamId', async (req, res) => {
  * @returns { activeJobIds: string[] }
  */
 router.get('/chat/active', async (req, res) => {
+  console.log('Получение активных задач пользователя', req.user.id);
   const activeJobIds = await GenerationJobManager.getActiveJobIdsForUser(
     req.user.id,
     req.user.tenantId,
@@ -175,6 +177,7 @@ router.get('/chat/active', async (req, res) => {
  */
 router.get('/chat/status/:conversationId', async (req, res) => {
   const { conversationId } = req.params;
+  console.log('Проверка статуса генерации для беседы', conversationId, 'пользователем', req.user.id);
 
   // streamId === conversationId, so we can use getJob directly
   const job = await GenerationJobManager.getJob(conversationId);
@@ -213,6 +216,8 @@ router.get('/chat/status/:conversationId', async (req, res) => {
  * @description Mounted before chatRouter to bypass buildEndpointOption middleware
  */
 router.post('/chat/abort', async (req, res) => {
+  const isTemp = req?.body?.isTemporary;
+  console.log('Прерывание генерации пользователем', req.user.id, isTemp ? '(временное)' : '');
   logger.debug(`[AgentStream] ========== ABORT ENDPOINT HIT ==========`);
   logger.debug(`[AgentStream] Method: ${req.method}, Path: ${req.path}`);
   logger.debug(`[AgentStream] Body:`, req.body);

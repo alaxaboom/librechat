@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 import { cloneDeep } from 'lodash';
 import { useNavigate } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useSetRecoilState, useResetRecoilState, useRecoilValue, useRecoilCallback } from 'recoil';
 import {
   Constants,
@@ -89,6 +89,23 @@ export default function useChatFunctions({
   const setShowStopButton = useSetRecoilState(store.showStopButtonByIndex(index));
   const resetLatestMultiMessage = useResetRecoilState(store.latestMessageFamily(index + 1));
   const setInteractionLog = useSetRecoilState(interactionLogState);
+
+  // Мутация для отправки моковых данных на сервер
+  const mockLogMutation = useMutation({
+    mutationFn: async (data: { conversationId: string | null; userMessage: string; aiResponse: string; isTemporary?: boolean }) => {
+      const response = await fetch('/api/messages/mock-log', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to log mock data');
+      }
+      return response.json();
+    },
+  });
 
   /**
    * Atomically read + reset the per-conversation queue of manually-invoked
@@ -398,6 +415,14 @@ export default function useChatFunctions({
       },
     ]);
 
+    // Отправляем моковые данные на сервер для логирования
+    mockLogMutation.mutate({
+      conversationId: conversationId || null,
+      userMessage: text,
+      aiResponse: randomResponse,
+      isTemporary: isTemporary,
+    });
+
     const submission: TSubmission = {
       conversation: {
         ...conversation,
@@ -420,6 +445,7 @@ export default function useChatFunctions({
       addedConvo,
       manualSkills: manualSkills.length > 0 ? manualSkills : undefined,
       // Добавляем флаг для mock-режима
+      // @ts-ignore - isMock используется для моковых данных
       isMock: true,
     };
 

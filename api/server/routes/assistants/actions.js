@@ -24,6 +24,7 @@ const router = express.Router();
  */
 router.post('/:assistant_id', async (req, res) => {
   try {
+    console.log('Добавление действия для ассистента', req.params.assistant_id, 'пользователем', req.user?.id);
     const appConfig = req.config;
     const { assistant_id } = req.params;
 
@@ -165,6 +166,7 @@ router.post('/:assistant_id', async (req, res) => {
  */
 router.delete('/:assistant_id/:action_id/:model', async (req, res) => {
   try {
+    console.log('Удаление действия', req.params.action_id, 'для ассистента', req.params.assistant_id, 'пользователем', req.user?.id);
     const { assistant_id, action_id, model } = req.params;
     req.body = req.body || {}; // Express 5: ensure req.body exists
     req.body.model = model;

@@ -11,7 +11,10 @@ const validateConvoAccess = require('~/server/middleware/validate/convoAccess');
 const validateAssistant = require('~/server/middleware/assistants/validate');
 const chatController = require('~/server/controllers/assistants/chatV2');
 
-router.post('/abort', handleAbort());
+router.post('/abort', (req, res, next) => {
+  console.log('Прерывание чата ассистента V2 пользователем', req.user?.id);
+  handleAbort()(req, res, next);
+});
 
 /**
  * @route POST /
@@ -28,7 +31,10 @@ router.post(
   validateAssistant,
   validateConvoAccess,
   setHeaders,
-  chatController,
+  (req, res, next) => {
+    console.log('Чат с ассистентом V2 пользователем', req.user?.id, 'ассистент:', req.body?.assistant_id);
+    chatController(req, res, next);
+  },
 );
 
 module.exports = router;

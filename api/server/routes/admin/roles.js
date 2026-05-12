@@ -33,14 +33,41 @@ const handlers = createAdminRolesHandlers({
 
 router.use(requireJwtAuth, requireAdminAccess);
 
-router.get('/', requireReadRoles, handlers.listRoles);
-router.post('/', requireManageRoles, handlers.createRole);
-router.get('/:name', requireReadRoles, handlers.getRole);
-router.patch('/:name', requireManageRoles, handlers.updateRole);
-router.delete('/:name', requireManageRoles, handlers.deleteRole);
-router.patch('/:name/permissions', requireManageRoles, handlers.updateRolePermissions);
-router.get('/:name/members', requireReadRoles, handlers.getRoleMembers);
-router.post('/:name/members', requireManageRoles, handlers.addRoleMember);
-router.delete('/:name/members/:userId', requireManageRoles, handlers.removeRoleMember);
+router.get('/', requireReadRoles, (req, res, next) => {
+  console.log('Получение списка ролей администратором', req.user.id);
+  handlers.listRoles(req, res, next);
+});
+router.post('/', requireManageRoles, (req, res, next) => {
+  console.log('Создание роли администратором', req.user.id, 'роль:', req.body?.name);
+  handlers.createRole(req, res, next);
+});
+router.get('/:name', requireReadRoles, (req, res, next) => {
+  console.log('Получение роли', req.params.name, 'администратором', req.user.id);
+  handlers.getRole(req, res, next);
+});
+router.patch('/:name', requireManageRoles, (req, res, next) => {
+  console.log('Обновление роли', req.params.name, 'администратором', req.user.id);
+  handlers.updateRole(req, res, next);
+});
+router.delete('/:name', requireManageRoles, (req, res, next) => {
+  console.log('Удаление роли', req.params.name, 'администратором', req.user.id);
+  handlers.deleteRole(req, res, next);
+});
+router.patch('/:name/permissions', requireManageRoles, (req, res, next) => {
+  console.log('Обновление разрешений роли', req.params.name, 'администратором', req.user.id);
+  handlers.updateRolePermissions(req, res, next);
+});
+router.get('/:name/members', requireReadRoles, (req, res, next) => {
+  console.log('Получение участников роли', req.params.name, 'администратором', req.user.id);
+  handlers.getRoleMembers(req, res, next);
+});
+router.post('/:name/members', requireManageRoles, (req, res, next) => {
+  console.log('Добавление участника в роль', req.params.name, 'администратором', req.user.id);
+  handlers.addRoleMember(req, res, next);
+});
+router.delete('/:name/members/:userId', requireManageRoles, (req, res, next) => {
+  console.log('Удаление участника', req.params.userId, 'из роли', req.params.name, 'администратором', req.user.id);
+  handlers.removeRoleMember(req, res, next);
+});
 
 module.exports = router;

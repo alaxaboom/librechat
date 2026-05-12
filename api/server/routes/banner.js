@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.get('/', optionalJwtAuth, async (req, res) => {
   try {
+    console.log('Получение баннера пользователем', req.user?.id || 'аноним');
     res.status(200).send(await getBanner(req.user));
   } catch (error) {
     logger.error('[getBanner] Error getting banner', error);

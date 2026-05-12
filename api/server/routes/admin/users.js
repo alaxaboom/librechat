@@ -21,8 +21,14 @@ const handlers = createAdminUsersHandlers({
 
 router.use(requireJwtAuth, requireAdminAccess);
 
-router.get('/', requireReadUsers, handlers.listUsers);
-router.get('/search', requireReadUsers, handlers.searchUsers);
+router.get('/', requireReadUsers, (req, res, next) => {
+  console.log('Получение списка пользователей администратором', req.user.id);
+  handlers.listUsers(req, res, next);
+});
+router.get('/search', requireReadUsers, (req, res, next) => {
+  console.log('Поиск пользователей администратором', req.user.id);
+  handlers.searchUsers(req, res, next);
+});
 // router.delete('/:id', requireManageUsers, handlers.deleteUser);
 
 module.exports = router;

@@ -32,6 +32,7 @@ router.use(validateConvoAccess);
 router.use(buildEndpointOption);
 
 const controller = async (req, res, next) => {
+  console.log('Чат с агентом пользователем', req.user.id, 'агент:', req.body?.agent_id || req.params?.endpoint);
   await AgentController(req, res, next, initializeClient, addTitle);
 };
 

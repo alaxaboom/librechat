@@ -10,6 +10,7 @@ const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
+    console.log('Загрузка аватара пользователем', req.user.id);
     const appConfig = req.config;
     filterFile({ req, file: req.file, image: true, isAvatar: true });
     const userId = req.user.id;

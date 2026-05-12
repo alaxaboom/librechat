@@ -28,13 +28,37 @@ const handlers = createAdminGroupsHandlers({
 
 router.use(requireJwtAuth, requireAdminAccess);
 
-router.get('/', requireReadGroups, handlers.listGroups);
-router.post('/', requireManageGroups, handlers.createGroup);
-router.get('/:id', requireReadGroups, handlers.getGroup);
-router.patch('/:id', requireManageGroups, handlers.updateGroup);
-router.delete('/:id', requireManageGroups, handlers.deleteGroup);
-router.get('/:id/members', requireReadGroups, handlers.getGroupMembers);
-router.post('/:id/members', requireManageGroups, handlers.addGroupMember);
-router.delete('/:id/members/:userId', requireManageGroups, handlers.removeGroupMember);
+router.get('/', requireReadGroups, (req, res, next) => {
+  console.log('Получение списка групп администратором', req.user.id);
+  handlers.listGroups(req, res, next);
+});
+router.post('/', requireManageGroups, (req, res, next) => {
+  console.log('Создание группы администратором', req.user.id, 'название:', req.body?.name);
+  handlers.createGroup(req, res, next);
+});
+router.get('/:id', requireReadGroups, (req, res, next) => {
+  console.log('Получение группы', req.params.id, 'администратором', req.user.id);
+  handlers.getGroup(req, res, next);
+});
+router.patch('/:id', requireManageGroups, (req, res, next) => {
+  console.log('Обновление группы', req.params.id, 'администратором', req.user.id);
+  handlers.updateGroup(req, res, next);
+});
+router.delete('/:id', requireManageGroups, (req, res, next) => {
+  console.log('Удаление группы', req.params.id, 'администратором', req.user.id);
+  handlers.deleteGroup(req, res, next);
+});
+router.get('/:id/members', requireReadGroups, (req, res, next) => {
+  console.log('Получение участников группы', req.params.id, 'администратором', req.user.id);
+  handlers.getGroupMembers(req, res, next);
+});
+router.post('/:id/members', requireManageGroups, (req, res, next) => {
+  console.log('Добавление участника в группу', req.params.id, 'администратором', req.user.id);
+  handlers.addGroupMember(req, res, next);
+});
+router.delete('/:id/members/:userId', requireManageGroups, (req, res, next) => {
+  console.log('Удаление участника', req.params.userId, 'из группы', req.params.id, 'администратором', req.user.id);
+  handlers.removeGroupMember(req, res, next);
+});
 
 module.exports = router;

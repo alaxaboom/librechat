@@ -25,12 +25,24 @@ const checkRemoteAgentsUse = generateCheckAccess({
   getRoleByName,
 });
 
-router.post('/', requireJwtAuth, checkRemoteAgentsUse, handlers.createApiKey);
+router.post('/', requireJwtAuth, checkRemoteAgentsUse, (req, res, next) => {
+  console.log('Создание API ключа пользователем', req.user.id);
+  handlers.createApiKey(req, res, next);
+});
 
-router.get('/', requireJwtAuth, checkRemoteAgentsUse, handlers.listApiKeys);
+router.get('/', requireJwtAuth, checkRemoteAgentsUse, (req, res, next) => {
+  console.log('Получение списка API ключей пользователем', req.user.id);
+  handlers.listApiKeys(req, res, next);
+});
 
-router.get('/:id', requireJwtAuth, checkRemoteAgentsUse, handlers.getApiKey);
+router.get('/:id', requireJwtAuth, checkRemoteAgentsUse, (req, res, next) => {
+  console.log('Получение API ключа', req.params.id, 'пользователем', req.user.id);
+  handlers.getApiKey(req, res, next);
+});
 
-router.delete('/:id', requireJwtAuth, checkRemoteAgentsUse, handlers.deleteApiKey);
+router.delete('/:id', requireJwtAuth, checkRemoteAgentsUse, (req, res, next) => {
+  console.log('Удаление API ключа', req.params.id, 'пользователем', req.user.id);
+  handlers.deleteApiKey(req, res, next);
+});
 
 module.exports = router;

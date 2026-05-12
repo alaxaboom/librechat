@@ -31,6 +31,7 @@ router.post('/:action_id/oauth/bind', requireJwtAuth, setOAuthSession, async (re
   try {
     const { action_id } = req.params;
     const user = req.user;
+    console.log('Привязка OAuth для действия', action_id, 'пользователем', user?.id);
     if (!user?.id) {
       return res.status(401).json({ error: 'User not authenticated' });
     }
@@ -55,6 +56,7 @@ router.post('/:action_id/oauth/bind', requireJwtAuth, setOAuthSession, async (re
 router.get('/:action_id/oauth/callback', async (req, res) => {
   const { action_id } = req.params;
   const { code, state } = req.query;
+  console.log('OAuth callback для действия', action_id);
   const flowsCache = getLogStores(CacheKeys.FLOWS);
   const flowManager = getFlowStateManager(flowsCache);
   const basePath = getBasePath();

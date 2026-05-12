@@ -10,8 +10,25 @@ const db = require('~/models');
 const router = express.Router();
 router.use(requireJwtAuth);
 
+/**
+ * Логирование моковых данных (для отладки)
+ * @route POST /mock-log
+ */
+router.post('/mock-log', async (req, res) => {
+  try {
+    const { conversationId, userMessage, aiResponse, isTemporary } = req.body;
+    console.log('Создание сообщения с моковыми данными, беседа:', conversationId, 'пользователь:', req.user.id, isTemporary ? '(временное)' : '', 'текст:', userMessage?.substring(0, 50));
+    console.log('Моковый ответ:', aiResponse?.substring(0, 50));
+    res.status(200).json({ success: true });
+  } catch (error) {
+    logger.error('Error logging mock data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
+    console.log('Получение сообщений пользователем', req.user.id);
     const user = req.user.id ?? '';
     const {
       cursor = null,
@@ -107,6 +124,8 @@ router.post('/branch', async (req, res) => {
   try {
     const { messageId, agentId } = req.body;
     const userId = req.user.id;
+    const isTemp = req?.body?.isTemporary;
+    console.log('Создание ветки сообщения', messageId, 'агентом', agentId, 'пользователем', userId, isTemp ? '(временное)' : '');
 
     if (!messageId || !agentId) {
       return res.status(400).json({ error: 'messageId and agentId are required' });
@@ -188,6 +207,8 @@ router.post('/artifact/:messageId', async (req, res) => {
   try {
     const { messageId } = req.params;
     const { index, original, updated } = req.body;
+    const isTemp = req?.body?.isTemporary;
+    console.log('Редактирование артефакта в сообщении', messageId, 'индекс', index, 'пользователем', req.user.id, isTemp ? '(временное)' : '');
 
     if (typeof index !== 'number' || index < 0 || original == null || updated == null) {
       return res.status(400).json({ error: 'Invalid request parameters' });
@@ -269,6 +290,7 @@ router.post('/artifact/:messageId', async (req, res) => {
 router.get('/:conversationId', validateMessageReq, async (req, res) => {
   try {
     const { conversationId } = req.params;
+    console.log('Получение сообщений беседы', conversationId, 'пользователем', req.user.id);
     const messages = await db.getMessages({ conversationId }, '-_id -__v -user');
     res.status(200).json(messages);
   } catch (error) {
@@ -280,6 +302,8 @@ router.get('/:conversationId', validateMessageReq, async (req, res) => {
 router.post('/:conversationId', validateMessageReq, async (req, res) => {
   try {
     const message = req.body;
+    const isTemp = req?.body?.isTemporary;
+    console.log('Создание сообщения в беседе', req.params.conversationId, 'пользователем', req.user.id, isTemp ? '(временное)' : '', 'текст:', message.text?.substring(0, 50));
     const reqCtx = {
       userId: req?.user?.id,
       isTemporary: req?.body?.isTemporary,
@@ -304,6 +328,7 @@ router.post('/:conversationId', validateMessageReq, async (req, res) => {
 router.get('/:conversationId/:messageId', validateMessageReq, async (req, res) => {
   try {
     const { conversationId, messageId } = req.params;
+    console.log('Получение сообщения', messageId, 'из беседы', conversationId, 'пользователем', req.user.id);
     const message = await db.getMessages({ conversationId, messageId }, '-_id -__v -user');
     if (!message) {
       return res.status(404).json({ error: 'Message not found' });
@@ -319,6 +344,7 @@ router.put('/:conversationId/:messageId', validateMessageReq, async (req, res) =
   try {
     const { conversationId, messageId } = req.params;
     const { text, index, model } = req.body;
+    console.log('Обновление сообщения', messageId, 'в беседе', conversationId, 'пользователем', req.user.id);
 
     if (index === undefined) {
       const tokenCount = await countTokens(text, model);
@@ -378,6 +404,7 @@ router.put('/:conversationId/:messageId/feedback', validateMessageReq, async (re
   try {
     const { conversationId, messageId } = req.params;
     const { feedback } = req.body;
+    console.log('Обновление фидбека для сообщения', messageId, 'пользователем', req.user.id, 'фидбек:', feedback);
 
     const updatedMessage = await db.updateMessage(
       req?.user?.id,
@@ -402,6 +429,7 @@ router.put('/:conversationId/:messageId/feedback', validateMessageReq, async (re
 router.delete('/:conversationId/:messageId', validateMessageReq, async (req, res) => {
   try {
     const { conversationId, messageId } = req.params;
+    console.log('Удаление сообщения', messageId, 'из беседы', conversationId, 'пользователем', req.user.id);
     await db.deleteMessages({ messageId, conversationId, user: req.user.id });
     res.status(204).send();
   } catch (error) {

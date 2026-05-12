@@ -33,7 +33,10 @@ router.use('/documents', documents);
  * @param {AssistantCreateParams} req.body - The assistant creation parameters.
  * @returns {Assistant} 201 - success response - application/json
  */
-router.post('/', controllers.createAssistant);
+router.post('/', (req, res, next) => {
+  console.log('Создание ассистента пользователем', req.user?.id, 'название:', req.body?.name);
+  controllers.createAssistant(req, res, next);
+});
 
 /**
  * Retrieves an assistant.
@@ -41,7 +44,10 @@ router.post('/', controllers.createAssistant);
  * @param {string} req.params.id - Assistant identifier.
  * @returns {Assistant} 200 - success response - application/json
  */
-router.get('/:id', controllers.retrieveAssistant);
+router.get('/:id', (req, res, next) => {
+  console.log('Получение ассистента', req.params.id, 'пользователем', req.user?.id);
+  controllers.retrieveAssistant(req, res, next);
+});
 
 /**
  * Modifies an assistant.
@@ -50,7 +56,10 @@ router.get('/:id', controllers.retrieveAssistant);
  * @param {AssistantUpdateParams} req.body - The assistant update parameters.
  * @returns {Assistant} 200 - success response - application/json
  */
-router.patch('/:id', controllers.patchAssistant);
+router.patch('/:id', (req, res, next) => {
+  console.log('Обновление ассистента', req.params.id, 'пользователем', req.user?.id);
+  controllers.patchAssistant(req, res, next);
+});
 
 /**
  * Deletes an assistant.
@@ -58,7 +67,10 @@ router.patch('/:id', controllers.patchAssistant);
  * @param {string} req.params.id - Assistant identifier.
  * @returns {Assistant} 200 - success response - application/json
  */
-router.delete('/:id', controllers.deleteAssistant);
+router.delete('/:id', (req, res, next) => {
+  console.log('Удаление ассистента', req.params.id, 'пользователем', req.user?.id);
+  controllers.deleteAssistant(req, res, next);
+});
 
 /**
  * Returns a list of assistants.
@@ -66,7 +78,10 @@ router.delete('/:id', controllers.deleteAssistant);
  * @param {AssistantListParams} req.query - The assistant list parameters for pagination and sorting.
  * @returns {AssistantListResponse} 200 - success response - application/json
  */
-router.get('/', controllers.listAssistants);
+router.get('/', (req, res, next) => {
+  console.log('Получение списка ассистентов пользователем', req.user?.id);
+  controllers.listAssistants(req, res, next);
+});
 
 /**
  * Uploads and updates an avatar for a specific assistant.
@@ -76,6 +91,9 @@ router.get('/', controllers.listAssistants);
  * @param {string} [req.body.metadata] - Optional metadata for the assistant's avatar.
  * @returns {Object} 200 - success response - application/json
  */
-avatar.post('/:assistant_id/avatar/', controllers.uploadAssistantAvatar);
+avatar.post('/:assistant_id/avatar/', (req, res, next) => {
+  console.log('Загрузка аватара для ассистента', req.params.assistant_id, 'пользователем', req.user?.id);
+  controllers.uploadAssistantAvatar(req, res, next);
+});
 
 module.exports = { v1: router, avatar };

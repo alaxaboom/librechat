@@ -118,6 +118,7 @@ function buildWebSearchConfig(appConfig) {
 
 router.get('/', async function (req, res) {
   try {
+    console.log('Получение конфигурации пользователем', req.user?.id || 'аноним');
     const sharedPayload = buildSharedPayload();
 
     if (!req.user) {

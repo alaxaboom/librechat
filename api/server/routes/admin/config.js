@@ -28,13 +28,37 @@ const handlers = createAdminConfigHandlers({
 
 router.use(requireJwtAuth, requireAdminAccess);
 
-router.get('/', handlers.listConfigs);
-router.get('/base', handlers.getBaseConfig);
-router.get('/:principalType/:principalId', handlers.getConfig);
-router.put('/:principalType/:principalId', handlers.upsertConfigOverrides);
-router.patch('/:principalType/:principalId/fields', handlers.patchConfigField);
-router.delete('/:principalType/:principalId/fields', handlers.deleteConfigField);
-router.delete('/:principalType/:principalId', handlers.deleteConfigOverrides);
-router.patch('/:principalType/:principalId/active', handlers.toggleConfig);
+router.get('/', (req, res, next) => {
+  console.log('Получение списка конфигураций администратором', req.user.id);
+  handlers.listConfigs(req, res, next);
+});
+router.get('/base', (req, res, next) => {
+  console.log('Получение базовой конфигурации администратором', req.user.id);
+  handlers.getBaseConfig(req, res, next);
+});
+router.get('/:principalType/:principalId', (req, res, next) => {
+  console.log('Получение конфигурации для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.getConfig(req, res, next);
+});
+router.put('/:principalType/:principalId', (req, res, next) => {
+  console.log('Обновление конфигурации для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.upsertConfigOverrides(req, res, next);
+});
+router.patch('/:principalType/:principalId/fields', (req, res, next) => {
+  console.log('Изменение полей конфигурации для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.patchConfigField(req, res, next);
+});
+router.delete('/:principalType/:principalId/fields', (req, res, next) => {
+  console.log('Удаление полей конфигурации для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.deleteConfigField(req, res, next);
+});
+router.delete('/:principalType/:principalId', (req, res, next) => {
+  console.log('Удаление конфигурации для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.deleteConfigOverrides(req, res, next);
+});
+router.patch('/:principalType/:principalId/active', (req, res, next) => {
+  console.log('Переключение активности конфигурации для', req.params.principalType, req.params.principalId, 'администратором', req.user.id);
+  handlers.toggleConfig(req, res, next);
+});
 
 module.exports = router;

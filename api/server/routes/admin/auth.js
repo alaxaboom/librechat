@@ -60,16 +60,21 @@ router.post(
   tenantContextMiddleware,
   requireAdminAccess,
   setBalanceConfig,
-  loginController,
+  (req, res, next) => {
+    console.log('Вход администратора', req.body?.email || req.body?.username);
+    loginController(req, res, next);
+  },
 );
 
 router.get('/verify', middleware.requireJwtAuth, requireAdminAccess, (req, res) => {
+  console.log('Проверка администратора', req.user.id);
   const { password: _p, totpSecret: _t, __v, ...user } = req.user;
   user.id = user._id.toString();
   res.status(200).json({ user });
 });
 
 router.get('/oauth/openid/check', (req, res) => {
+  console.log('Проверка конфигурации OpenID администратора');
   const openidConfig = getOpenIdConfig();
   if (!openidConfig) {
     return res.status(404).json({
@@ -414,6 +419,7 @@ const EXCHANGE_CODE_PATTERN = /^[a-f0-9]{64}$/;
  */
 router.post('/oauth/exchange', middleware.loginLimiter, async (req, res) => {
   try {
+    console.log('Обмен OAuth кода администратора');
     const { code, code_verifier: codeVerifier } = req.body;
 
     if (!code) {

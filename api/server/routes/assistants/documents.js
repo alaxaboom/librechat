@@ -8,6 +8,9 @@ const router = express.Router();
  * @route GET /assistants/documents
  * @returns {AssistantDocument[]} 200 - success response - application/json
  */
-router.get('/', controllers.getAssistantDocuments);
+router.get('/', (req, res, next) => {
+  console.log('Получение документов ассистента пользователем', req.user?.id);
+  controllers.getAssistantDocuments(req, res, next);
+});
 
 module.exports = router;

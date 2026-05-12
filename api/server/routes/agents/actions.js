@@ -37,6 +37,7 @@ const checkAgentCreate = generateCheckAccess({
  */
 router.get('/', async (req, res) => {
   try {
+    console.log('Получение действий агента пользователем', req.user.id);
     const userId = req.user.id;
     const editableAgentObjectIds = await findAccessibleResources({
       userId,
@@ -79,6 +80,7 @@ router.post(
   checkAgentCreate,
   async (req, res) => {
     try {
+      console.log('Добавление действия для агента', req.params.agent_id, 'пользователем', req.user.id);
       const { agent_id } = req.params;
 
       /** @type {{ functions: FunctionTool[], action_id: string, metadata: ActionMetadata }} */
@@ -236,6 +238,7 @@ router.delete(
   checkAgentCreate,
   async (req, res) => {
     try {
+      console.log('Удаление действия', req.params.action_id, 'для агента', req.params.agent_id, 'пользователем', req.user.id);
       const { agent_id, action_id } = req.params;
 
       // Permissions already validated by middleware - load agent directly
